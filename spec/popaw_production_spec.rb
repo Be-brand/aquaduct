@@ -1,11 +1,57 @@
 # frozen_string_literal: true
 
 RSpec.describe PopawProduction do
-  it "has a version number" do
+  it 'has a version number' do
     expect(PopawProduction::VERSION).not_to be nil
   end
+end
 
-  it "does something useful" do
-    expect(false).to eq(true)
+module PopawProduction
+  class PopawProduction::Order
+    # provide random IDs to Order factory methods
+    class << self
+      require 'digest'
+
+      def some_id
+        Digest::SHA1.hexdigest("some-random-string")[8..16]
+      end
+
+      CHANNELS.each do |channel|
+        alias_method :"original_#{channel}", channel
+        define_method channel do |*a, **kw, &b|
+          send :"original_#{channel}", some_id, *a, **kw, &b
+        end
+      end
+    end
+  end
+
+  RSpec.describe OrderChanneler do
+    it 'does nothing given no orders' do
+      channel
+      expect(channeled.orders.size).to eq 0
+    end
+
+    context 'ordered' do
+      let(:delegate) { spy }
+
+      it 'notifies designers about the order' do
+        order = Order.ordered
+        expect(delegate).to receive(:has_been_ordered!).with order
+        channel delegate, order
+      end
+
+      it 'only notifies once per order' do
+        order = Order.ordered
+        expect(delegate).to receive(:has_been_ordered!).once
+        channel delegate, order
+        channel delegate, order
+      end
+    end
+
+    let(:channeled) { @channeled }
+
+    def channel *a, **kw, &b
+      @channeled = OrderChanneler.channel *a, **kw, &b
+    end
   end
 end
