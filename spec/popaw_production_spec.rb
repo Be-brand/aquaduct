@@ -25,7 +25,13 @@ module PopawProduction
     end
   end
 
-  RSpec.describe OrderChanneler do
+  class TestableOrderChanneler < PopawProduction::OrderChanneler
+    include PopawProduction::Persistence::InMemory
+  end
+
+  RSpec.describe TestableOrderChanneler do
+    after(:each) { PopawProduction::Persistence::InMemory.wipe }
+
     it 'does nothing given no orders' do
       channel
       expect(channeled.orders.size).to eq 0
@@ -51,7 +57,7 @@ module PopawProduction
     let(:channeled) { @channeled }
 
     def channel *a, **kw, &b
-      @channeled = OrderChanneler.channel *a, **kw, &b
+      @channeled = subject.class.channel *a, **kw, &b
     end
   end
 end

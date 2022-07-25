@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "popaw_production/version"
+require_relative "popaw_production/persistence"
 
 module PopawProduction
   class Error < StandardError; end
@@ -16,7 +17,7 @@ module PopawProduction
       end
     end
 
-    attr_reader :channel
+    attr_reader :channel, :id
 
     def initialize channel, id
       @channel, @id = channel, id
@@ -31,19 +32,31 @@ module PopawProduction
     def initialize *args
       @orders = args
       @delegate = @orders.shift unless @orders.first.is_a? Order
+      initialize_persistence
     end
 
     def channel
-      dispatch_orders_to_delegate
+      dispatch_orders_to_channels
       OrdersChannelAggregator.new CHANNELS, @orders
     end
 
+    protected
+
+    def initialize_persistence; end
+    def already_channeled? order; false end
+    def remember_order_was_channeled order; end
+
     private
 
-    def dispatch_orders_to_delegate
+    def dispatch_orders_to_channels
       @orders.each do |order|
-        @delegate.send :"has_been_#{order.channel}!", order
+        dispatch_to_channel order unless already_channeled? order
       end
+    end
+
+    def dispatch_to_channel order
+      remember_order_was_channeled order
+      @delegate.send :"has_been_#{order.channel}!", order
     end
 
     class OrdersChannelAggregator
