@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "popaw_production"
+require 'rspec/collection_matchers'
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

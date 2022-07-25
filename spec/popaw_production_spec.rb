@@ -34,20 +34,19 @@ module PopawProduction
 
     it 'does nothing given no orders' do
       channel
-      expect(channeled.orders.size).to eq 0
+      expect(channeled.all).to have(0).orders
     end
 
     context 'ordered' do
       let(:delegate) { spy }
+      let(:order) { Order.ordered }
 
       it 'notifies designers about the order' do
-        order = Order.ordered
         expect(delegate).to receive(:has_been_ordered!).with order
         channel delegate, order
       end
 
       it 'only notifies once per order' do
-        order = Order.ordered
         expect(delegate).to receive(:has_been_ordered!).once
         channel delegate, order
         channel delegate, order
