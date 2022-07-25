@@ -5,7 +5,8 @@ Popaw products, from an incoming order until delivery.
 
 ** Production Process
 #+CAPTION: An order's lifecycle
-[[./docs/assets/order_lifecycle.png]] \\
+[[./docs/assets/order_lifecycle.png]]
+
 For each of these steps, whenever an order transitions into one of
 them, the appropriate people should be notified and provided tools to
 add data to an order's payload and pass it on; e.g. once ordered,
