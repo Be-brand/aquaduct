@@ -6,7 +6,7 @@ require_relative "popaw_production/persistence"
 module PopawProduction
   class Error < StandardError; end
 
-  CHANNELS = [:ordered, :delivered].freeze
+  CHANNELS = [:ordered, :designed, :delivered].freeze
 
   class Order
     class << self
@@ -21,6 +21,15 @@ module PopawProduction
 
     def initialize channel, id
       @channel, @id = channel, id
+    end
+
+    def advance_channel!
+      @channel = next_channel
+    end
+
+    def next_channel
+      current_index = CHANNELS.index channel
+      CHANNELS[1 + current_index]
     end
   end
 
@@ -51,6 +60,10 @@ module PopawProduction
     def dispatch_orders_to_channels
       @orders.each do |order|
         dispatch_to_channel order unless already_channeled? order
+        if order_channel_completed? order
+          order.advance_channel!
+          dispatch_to_channel order
+        end
       end
     end
 
@@ -59,15 +72,19 @@ module PopawProduction
       @delegate.send :"has_been_#{order.channel}!", order
     end
 
-    class OrdersChannelAggregator
-      attr_reader :orders
+    def order_channel_completed? order
+      @delegate.send :"has_been_#{order.next_channel}?", order
+    end
 
+    class OrdersChannelAggregator
       def initialize channels, orders
         @orders = orders
       end
 
+      def all; @orders end
+
       CHANNELS.each do |channel|
-        define_method :"#{channel}_orders" do
+        define_method channel do
           @orders.filter { |order| order.channel == channel }
         end
       end

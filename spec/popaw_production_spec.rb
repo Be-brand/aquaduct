@@ -51,6 +51,19 @@ module PopawProduction
         channel delegate, order
         channel delegate, order
       end
+
+      it 'asks if order has been designed' do
+        expect(delegate).to receive(:has_been_designed?).once
+        channel delegate, order
+      end
+
+      it "notifies order has been designed when it's been designed" do
+        expect(delegate).to receive(:has_been_designed?).and_return true
+        expect(delegate).to receive(:has_been_designed!)
+        channel delegate, order
+        expect(channeled.ordered).to have(0).orders
+        expect(channeled.designed).to have(1).order
+      end
     end
 
     let(:channeled) { @channeled }
