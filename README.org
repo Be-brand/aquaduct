@@ -1,14 +1,129 @@
-* Popaw Production
-** Description
-These are the business rules for handling the process of producing
-Popaw products, from an incoming order until delivery.
+* Aquaduct
+** Overview
+   Aquaduct is handles packages going through sequences of channels. An
+   Aquaduct may be define like so:
 
-** Production Process
-#+CAPTION: An order's lifecycle
-[[./docs/assets/order_lifecycle.png]]
+   #+BEGIN_SRC ruby
+module MyAquaduct
+  include Aquaduct.with_channels do
+    advance_through %i[started progressed ended]
+  end
 
-For each of these steps, whenever an order transitions into one of
-them, the appropriate people should be notified and provided tools to
-add data to an order's payload and pass it on; e.g. once ordered,
-designers should be notified and made able to submit a finished
-design.
+  class Delegate
+    # may define e.g.
+    def started! package; end
+    def progressed? package; end
+    def progressed! package; end
+    def ended? package; end
+    def ended! package; end
+
+    def cancelled? package; end
+    def cancelled! package; end
+  end
+end
+
+channeled_packages = MyAquaduct::PackageChanneler.channel MyAquaduct::Delegate *[
+  MyAquaduct::Package.started 'id 1',
+  MyAquaduct::Package.started 'id 2',
+  MyAquaduct::Package.ended 'id 3',
+]
+
+expect(channeled_packages[:started]).to have(2).packages
+expect(channeled_packages[:progressed]).to have(0).packages
+expect(channeled_packages[:ended]).to have(1).package
+
+expect(MyAquaduct::Delegate).to receive(:started!).twice
+expect(MyAquaduct::Delegate).to receive(:progressed?).twice
+expect(MyAquaduct::Delegate).to receive(:ended!).once
+expect(MyAquaduct::Delegate).to receive(:cancelled?).exactly(3).times
+   #+END_SRC
+
+*** Advancing Packages
+    Packages are advanced when the delegate says they should:
+
+    #+BEGIN_SRC ruby
+module MyAquaduct
+  include Aquaduct.with_channels do
+    advance_through %i[started, ended]
+  end
+
+  class Delegate
+    def ended? package
+      package.id == 1
+    end
+  end
+end
+
+channeled_packages = MyAquaduct::PackageChanneler.channel MyAquaduct::Delegate *[
+  MyAquaduct::Package.started 1,
+  MyAquaduct::Package.started 2,
+  MyAquaduct::Package.started 3,
+]
+
+expect(MyAquaduct::Delegate).to receive(:ended?).exactly(3).times
+expect(MyAquaduct::Delegate).to receive(:ended!).once
+expect(channeled_packages[:started]).to have(2).package
+expect(channeled_packages[:ended]).to have(1).package
+    #+END_SRC
+
+*** Custom Package Name
+    A name to override ~Package~ may be provided:
+
+    #+BEGIN_SRC ruby
+module MyAquaduct
+  include Aquaduct.with_channels :some_order do
+    # ...
+  end
+end
+
+expect(MyAquaduct::SomeOrder).to be_present
+expect(MyAquaduct::SomeOrderChanneler).to be_present
+    #+END_SRC
+
+*** Custom Cancel Channel
+    A custom cancel channel may be provided:
+
+    #+BEGIN_SRC ruby
+module MyAquaduct
+  include Aquaduct.with_channels do
+    advance_through %i[started ended], cancel_into: :custom_cancelled
+  end
+
+  class Delegate
+    def custom_cancelled? package; end
+  end
+end
+
+channeled_packages = MyAquaduct::PackageChanneler.channel MyAquaduct::Delegate, *[
+  MyAquaduct::Package.started 'id 1',
+  MyAquaduct::Package.ended 'id 2',
+]
+
+expect(MyAquaduct::Delegate).to receive(:custom_cancelled?).twice
+    #+END_SRC
+
+*** Multiple Cancel Channels
+    Channels may be split into disparate sequences with their own cancel channels:
+
+    #+BEGIN_SRC ruby
+module MyAquaduct
+  include Aquaduct.with_channels do
+    advance_through %i[first], cancel_into: :first_cancel
+    and_then %i[second], cancel_into: :second_cancel
+  end
+
+  class Delegate
+    def first_cancel? package; end
+    def second_cancel? package; end
+  end
+end
+
+channeled_packages = MyAquaduct::PackageChanneler.channel MyAquaduct::Delegate, *[
+  MyAquaduct::Package.first 'id 1',
+  MyAquaduct::Package.second 'id 2',
+  MyAquaduct::Package.second 'id 3',
+]
+
+expect(MyAquaduct::Delegate).to receive(:first_cancel?).once
+expect(MyAquaduct::Delegate).to receive(:second_cancel?).twice
+    #+END_SRC

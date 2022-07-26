@@ -1,3 +1,3 @@
-module PopawProduction::Persistence; end
+module Aquaduct::Persistence; end
 
 require_relative 'persistence/in_memory'

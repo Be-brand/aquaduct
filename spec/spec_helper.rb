@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "popaw_production"
+require 'aquaduct'
 require 'rspec/collection_matchers'
 
 RSpec.configure do |config|
