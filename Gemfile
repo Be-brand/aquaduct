@@ -2,7 +2,7 @@
 
 source "https://rubygems.org"
 
-# Specify your gem's dependencies in popaw_production.gemspec
+# Specify your gem's dependencies in aquaduct.gemspec
 gemspec
 
 gem 'activesupport'
