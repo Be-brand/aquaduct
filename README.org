@@ -5,7 +5,7 @@
 
    #+BEGIN_SRC ruby
 module MyAquaduct
-  include (Aquaduct.with_channels do
+  include(Aquaduct.with_channels do
     advance_through %i[started progressed ended]
   end)
 
@@ -51,7 +51,7 @@ expect(MyAquaduct::Delegate).to receive(:cancelled?).exactly(3).times
 
     #+BEGIN_SRC ruby
 module MyAquaduct
-  include (Aquaduct.with_channels do
+  include(Aquaduct.with_channels do
     advance_through %i[started, ended]
   end)
 
@@ -79,7 +79,7 @@ expect(channeled_packages[:ended]).to have(1).package
 
     #+BEGIN_SRC ruby
 module MyAquaduct
-  include (Aquaduct.with_channels :some_order do
+  include(Aquaduct.with_channels :some_order do
     # ...
   end)
 end
@@ -93,7 +93,7 @@ expect(MyAquaduct::SomeOrderChanneler).to be_present
 
     #+BEGIN_SRC ruby
 module MyAquaduct
-  include (Aquaduct.with_channels do
+  include(Aquaduct.with_channels do
     advance_through %i[started ended], cancel_into: :custom_cancelled
   end)
 
@@ -115,7 +115,7 @@ expect(MyAquaduct::Delegate).to receive(:custom_cancelled?).twice
 
     #+BEGIN_SRC ruby
 module MyAquaduct
-  include (Aquaduct.with_channels do
+  include(Aquaduct.with_channels do
     advance_through %i[first], cancel_into: :first_cancel
     and_then %i[second], cancel_into: :second_cancel
   end)
