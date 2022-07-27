@@ -7,7 +7,6 @@ module Aquaduct
     included do
       attr_reader :channel, :id
 
-      # C = channels
       class << self
         CHANNELS.each_value do |channel|
           define_method channel.name do |id|

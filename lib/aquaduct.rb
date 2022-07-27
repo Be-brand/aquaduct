@@ -12,6 +12,8 @@ module Aquaduct
   def self.with_channels for_entity = :package, &channel_drawer
     channels = Channels.draw &channel_drawer
     Module.new do
+      const_set :CHANNELS, channels
+
       entity_class_name = for_entity.to_s.camelize
       entity_class = Class.new do
         const_set :CHANNELS, channels
