@@ -5,9 +5,9 @@
 
    #+BEGIN_SRC ruby
 module MyAquaduct
-  include Aquaduct.with_channels do
+  include (Aquaduct.with_channels do
     advance_through %i[started progressed ended]
-  end
+  end)
 
   class Delegate
     # may define e.g.
@@ -38,14 +38,22 @@ expect(MyAquaduct::Delegate).to receive(:ended!).once
 expect(MyAquaduct::Delegate).to receive(:cancelled?).exactly(3).times
    #+END_SRC
 
+   Note the parentheses around the ~include~ block; this is because
+   when a block is passed along in a position like that it will have
+   the scope of ~Aquaduct~ instead of the DSL class it gets
+   ~instance_eval~d out of in some edge cases I haven't managed to
+   identify. The parentheses may sometimes be omitted, but do it at
+   your own risk if at all. I'm certainly not going to until this gets
+   resolved.
+
 *** Advancing Packages
     Packages are advanced when the delegate says they should:
 
     #+BEGIN_SRC ruby
 module MyAquaduct
-  include Aquaduct.with_channels do
+  include (Aquaduct.with_channels do
     advance_through %i[started, ended]
-  end
+  end)
 
   class Delegate
     def ended? package
@@ -71,9 +79,9 @@ expect(channeled_packages[:ended]).to have(1).package
 
     #+BEGIN_SRC ruby
 module MyAquaduct
-  include Aquaduct.with_channels :some_order do
+  include (Aquaduct.with_channels :some_order do
     # ...
-  end
+  end)
 end
 
 expect(MyAquaduct::SomeOrder).to be_present
@@ -85,9 +93,9 @@ expect(MyAquaduct::SomeOrderChanneler).to be_present
 
     #+BEGIN_SRC ruby
 module MyAquaduct
-  include Aquaduct.with_channels do
+  include (Aquaduct.with_channels do
     advance_through %i[started ended], cancel_into: :custom_cancelled
-  end
+  end)
 
   class Delegate
     def custom_cancelled? package; end
@@ -107,10 +115,10 @@ expect(MyAquaduct::Delegate).to receive(:custom_cancelled?).twice
 
     #+BEGIN_SRC ruby
 module MyAquaduct
-  include Aquaduct.with_channels do
+  include (Aquaduct.with_channels do
     advance_through %i[first], cancel_into: :first_cancel
     and_then %i[second], cancel_into: :second_cancel
-  end
+  end)
 
   class Delegate
     def first_cancel? package; end
