@@ -27,6 +27,14 @@ module Aquaduct
       @cancel_channels = []
     end
 
+    def persist persistence = nil
+      persistence ||= Aquaduct::Persistence::Delegated
+      if persistence.is_a? Symbol
+        persistence = Aquaduct::Persistence.const_get persistence.to_s.camelize
+      end
+      @persistence = persistence
+    end
+
     def and_then *a, **kw, &b
       raise Channels::DrawCannotStartWithAndThenError unless @draw_started
       advance_through *a, **kw, &b
@@ -41,6 +49,15 @@ module Aquaduct
     private
 
     def result
+      result = prepare_result_channels
+      result.instance_variable_set :@persistence, @persistence
+      def result.persistence
+        @persistence
+      end
+      result
+    end
+
+    def prepare_result_channels
       result = {}
       @sequences.each_with_index &register_channel_into(result)
       @cancel_channels.each do |channel_name|

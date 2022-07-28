@@ -18,7 +18,7 @@ module Aquaduct
     protected
 
     def initialize_persistence; end
-    def already_channeled? _package; false end
+    def package_already_channeled? _package; end
     def remember_package_was_channeled _package; end
 
     private
@@ -43,19 +43,27 @@ module Aquaduct
 
     def dispatch_to_channel package
       remember_package_was_channeled package
-      @delegate.send :"#{package.channel.name}!", package
+      delegate :"#{package.channel.name}!", package
+    end
+
+    def already_channeled? package
+      true == package_already_channeled?(package)
     end
 
     def package_cancelled? package
       return false if package.cancel_channel.nil?
       question = :"#{package.cancel_channel.name}?"
-      true == @delegate.send(question, package)
+      true == delegate(question, package)
     end
 
     def package_completed? package
       return false if package.next_channel.nil?
       question = :"#{package.next_channel.name}?"
-      true == @delegate.send(question, package)
+      true == delegate(question, package)
+    end
+
+    def delegate name, *a, **kw, &b
+      @delegate.send name, *a, **kw, &b if @delegate.respond_to? name
     end
 
     def aggregate_channeled_packages

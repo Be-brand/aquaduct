@@ -1,137 +1,170 @@
 * Aquaduct
 ** Overview
-   Aquaduct is handles packages going through sequences of channels. An
-   Aquaduct may be define like so:
+Aquaduct is handles packages going through sequences of channels. An
+Aquaduct may be define like so:
 
-   #+BEGIN_SRC ruby
-module MyAquaduct
-  include(Aquaduct.with_channels do
-    advance_through %i[started progressed ended]
-  end)
+#+BEGIN_SRC ruby
+  module MyAquaduct
+    include(Aquaduct.with_channels do
+              advance_through %i[started progressed ended]
+            end)
 
-  class Delegate
-    # may define e.g.
-    def started! package; end
-    def progressed? package; end
-    def progressed! package; end
-    def ended? package; end
-    def ended! package; end
+    class Delegate
+      # may define e.g.
+      def started! package; end
+      def progressed? package; end
+      def progressed! package; end
+      def ended? package; end
+      def ended! package; end
 
-    def cancelled? package; end
-    def cancelled! package; end
-  end
-end
-
-channeled_packages = MyAquaduct::PackageChanneler.channel MyAquaduct::Delegate *[
-  MyAquaduct::Package.started 'id 1',
-  MyAquaduct::Package.started 'id 2',
-  MyAquaduct::Package.ended 'id 3',
-]
-
-expect(channeled_packages[:started]).to have(2).packages
-expect(channeled_packages[:progressed]).to have(0).packages
-expect(channeled_packages[:ended]).to have(1).package
-
-expect(MyAquaduct::Delegate).to receive(:started!).twice
-expect(MyAquaduct::Delegate).to receive(:progressed?).twice
-expect(MyAquaduct::Delegate).to receive(:ended!).once
-expect(MyAquaduct::Delegate).to receive(:cancelled?).exactly(3).times
-   #+END_SRC
-
-   Note the parentheses around the ~include~ block; this is because
-   when a block is passed along in a position like that it will have
-   the scope of ~Aquaduct~ instead of the DSL class it gets
-   ~instance_eval~d out of in some edge cases I haven't managed to
-   identify. The parentheses may sometimes be omitted, but do it at
-   your own risk if at all. I'm certainly not going to until this gets
-   resolved.
-
-*** Advancing Packages
-    Packages are advanced when the delegate says they should:
-
-    #+BEGIN_SRC ruby
-module MyAquaduct
-  include(Aquaduct.with_channels do
-    advance_through %i[started, ended]
-  end)
-
-  class Delegate
-    def ended? package
-      package.id == 1
+      def cancelled? package; end
+      def cancelled! package; end
     end
   end
-end
 
-channeled_packages = MyAquaduct::PackageChanneler.channel MyAquaduct::Delegate *[
-  MyAquaduct::Package.started 1,
-  MyAquaduct::Package.started 2,
-  MyAquaduct::Package.started 3,
-]
+  packages = [
+    MyAquaduct::Package.started 'id 1',
+    MyAquaduct::Package.started 'id 2',
+    MyAquaduct::Package.ended 'id 3',
+  ]
 
-expect(MyAquaduct::Delegate).to receive(:ended?).exactly(3).times
-expect(MyAquaduct::Delegate).to receive(:ended!).once
-expect(channeled_packages[:started]).to have(2).package
-expect(channeled_packages[:ended]).to have(1).package
-    #+END_SRC
+  channeled = MyAquaduct::PackageChanneler.channel MyAquaduct::Delegate *packages
+
+  expect(channeled[:started]).to have(2).packages
+  expect(channeled[:progressed]).to have(0).packages
+  expect(channeled[:ended]).to have(1).package
+
+  expect(MyAquaduct::Delegate).to receive(:started!).twice
+  expect(MyAquaduct::Delegate).to receive(:progressed?).twice
+  expect(MyAquaduct::Delegate).to receive(:ended!).once
+  expect(MyAquaduct::Delegate).to receive(:cancelled?).exactly(3).times
+#+END_SRC
+
+Note the parentheses around the ~include~ block; this is because
+when a block is passed along in a position like that it will have
+the scope of ~Aquaduct~ instead of the DSL class it gets
+~instance_eval~d out of in some edge cases I haven't managed to
+identify. The parentheses may sometimes be omitted, but do it at
+your own risk if at all. I'm certainly not going to until this gets
+resolved.
+
+*** Advancing Packages
+Packages are advanced when the delegate says they should:
+
+#+BEGIN_SRC ruby
+  module MyAquaduct
+    include(Aquaduct.with_channels do
+              advance_through %i[started, ended]
+            end)
+
+    class Delegate
+      def ended? package
+        package.id == 1
+      end
+    end
+  end
+
+  packages = [
+    MyAquaduct::Package.started 1,
+    MyAquaduct::Package.started 2,
+    MyAquaduct::Package.started 3,
+  ]
+
+  channeled = MyAquaduct::PackageChanneler.channel MyAquaduct::Delegate *packages
+
+  expect(MyAquaduct::Delegate).to receive(:ended?).exactly(3).times
+  expect(MyAquaduct::Delegate).to receive(:ended!).once
+  expect(channeled[:started]).to have(2).package
+  expect(channeled[:ended]).to have(1).package
+#+END_SRC
 
 *** Custom Package Name
-    A name to override ~Package~ may be provided:
+A name to override ~Package~ may be provided:
 
-    #+BEGIN_SRC ruby
-module MyAquaduct
-  include(Aquaduct.with_channels :some_order do
-    # ...
-  end)
-end
+#+BEGIN_SRC ruby
+  module MyAquaduct
+    include(Aquaduct.with_channels :some_order do
+              # ...
+            end)
+  end
 
-expect(MyAquaduct::SomeOrder).to be_present
-expect(MyAquaduct::SomeOrderChanneler).to be_present
-    #+END_SRC
+  expect(MyAquaduct::SomeOrder).to be_present
+  expect(MyAquaduct::SomeOrderChanneler).to be_present
+#+END_SRC
 
 *** Custom Cancel Channel
-    A custom cancel channel may be provided:
+A custom cancel channel may be provided:
 
-    #+BEGIN_SRC ruby
-module MyAquaduct
-  include(Aquaduct.with_channels do
-    advance_through %i[started ended], cancel_into: :custom_cancelled
-  end)
+#+BEGIN_SRC ruby
+  module MyAquaduct
+    include(Aquaduct.with_channels do
+              advance_through %i[started ended], cancel_into: :custom_cancelled
+            end)
 
-  class Delegate
-    def custom_cancelled? package; end
+    class Delegate
+      def custom_cancelled? package; end
+    end
   end
-end
 
-channeled_packages = MyAquaduct::PackageChanneler.channel MyAquaduct::Delegate, *[
-  MyAquaduct::Package.started 'id 1',
-  MyAquaduct::Package.ended 'id 2',
-]
+  packages = [
+    MyAquaduct::Package.started 'id 1',
+    MyAquaduct::Package.ended 'id 2',
+  ]
+                                                            ]
+  channeled = MyAquaduct::PackageChanneler.channel MyAquaduct::Delegate, *packages
 
-expect(MyAquaduct::Delegate).to receive(:custom_cancelled?).twice
-    #+END_SRC
+  expect(MyAquaduct::Delegate).to receive(:custom_cancelled?).twice
+#+END_SRC
 
 *** Multiple Cancel Channels
-    Channels may be split into disparate sequences with their own cancel channels:
+Channels may be split into disparate sequences with their own cancel channels:
 
-    #+BEGIN_SRC ruby
-module MyAquaduct
-  include(Aquaduct.with_channels do
-    advance_through %i[first], cancel_into: :first_cancel
-    and_then %i[second], cancel_into: :second_cancel
-  end)
+#+BEGIN_SRC ruby
+  module MyAquaduct
+    include(Aquaduct.with_channels do
+              advance_through %i[first], cancel_into: :first_cancel
+              and_then %i[second], cancel_into: :second_cancel
+            end)
 
-  class Delegate
-    def first_cancel? package; end
-    def second_cancel? package; end
+    class Delegate
+      def first_cancel? package; end
+      def second_cancel? package; end
+    end
   end
-end
 
-channeled_packages = MyAquaduct::PackageChanneler.channel MyAquaduct::Delegate, *[
-  MyAquaduct::Package.first 'id 1',
-  MyAquaduct::Package.second 'id 2',
-  MyAquaduct::Package.second 'id 3',
-]
+  packages = [
+    MyAquaduct::Package.first 'id 1',
+    MyAquaduct::Package.second 'id 2',
+    MyAquaduct::Package.second 'id 3',
+  ]
+  channeled = MyAquaduct::PackageChanneler.channel MyAquaduct::Delegate, *packages
 
-expect(MyAquaduct::Delegate).to receive(:first_cancel?).once
-expect(MyAquaduct::Delegate).to receive(:second_cancel?).twice
-    #+END_SRC
+  expect(MyAquaduct::Delegate).to receive(:first_cancel?).once
+  expect(MyAquaduct::Delegate).to receive(:second_cancel?).twice
+#+END_SRC
+
+***  Persistence
+In general, Aquaduct doesn't persist anything: it's the client's
+responsibility to do so. However, Aquaduct supports delegating
+persistence for channeled packages, i.e. persisting when a package is
+channeled so as to not notify clients about it more than once.
+
+By default, this is enabled and calls methods on the Channeler
+delegate, for more info see ~Aquaduct::Persistence::Delegated~ (TODO:
+add link).
+
+You may, however, add your own duck-typed classes into
+~Aquaduct::Persistence~ and use them like so:
+
+#+BEGIN_SRC ruby
+  class Aquaduct::Persistence::MyPersistence; end
+
+  module MyAquaduct
+    include(Aquaduct.with_channels do
+              persist :my_persistence
+              # ...
+            end)
+  end
+#+END_SRC
+
+Don't forget to send PRs with new persistence layers as relevant!

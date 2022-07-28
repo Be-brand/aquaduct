@@ -57,11 +57,6 @@ module TestableAquaduct
         include TestableChannelable
       end
       const_set :Package, package_class
-
-      package_channeler_class = Class.new(const_get(:PackageChanneler)) do
-        include Aquaduct::Persistence::InMemory
-      end
-      const_set :PackageChanneler, package_channeler_class
     end
   end
 end

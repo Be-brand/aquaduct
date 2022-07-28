@@ -15,7 +15,7 @@ module Aquaduct::Persistence
       memory[package.id] << package.channel
     end
 
-    def already_channeled? package
+    def package_already_channeled? package
       memory.key?(package.id) and memory[package.id].include? package.channel
     end
 
