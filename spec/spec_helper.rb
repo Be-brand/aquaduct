@@ -24,9 +24,9 @@ module TestableChannelable
 
   # provide random IDs to Order factory methods
   included do
-    C = self.const_get :CHANNELS
+    @@channels = self.const_get :CHANNELS
     class << self
-      C.each_value do |channel|
+      @@channels.each_value do |channel|
         alias_method :"original_#{channel.name}", channel.name
         define_method channel.name do |*a, **kw, &b|
           send :"original_#{channel.name}", some_id, *a, **kw, &b
