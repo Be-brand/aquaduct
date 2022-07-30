@@ -24,7 +24,7 @@ module TestableChannelable
 
   # provide random IDs to Order factory methods
   included do
-    @@channels = self.const_get :CHANNELS
+    @@channels = self.const_get :Channels
     class << self
       @@channels.each_value do |channel|
         alias_method :"original_#{channel.name}", channel.name
@@ -51,7 +51,7 @@ module TestableAquaduct
     Module.new do
       include mod
 
-      const_set :CHANNELS, mod::CHANNELS
+      const_set :Channels, mod::Channels
 
       package_class = Class.new(const_get(:Package)) do
         include TestableChannelable

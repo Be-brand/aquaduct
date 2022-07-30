@@ -67,7 +67,7 @@ module Aquaduct
     end
 
     def aggregate_channeled_packages
-      channels = self.class.const_get :CHANNELS
+      channels = self.class.const_get :Channels
       Class.new do
         def initialize packages
           @packages = packages

@@ -7,7 +7,7 @@ module Aquaduct
     included do
       attr_reader :channel, :id
 
-      @@channels = self.const_get :CHANNELS
+      @@channels = self.const_get :Channels
       class << self
         @@channels.each_value do |channel|
           define_method channel.name do |id|
