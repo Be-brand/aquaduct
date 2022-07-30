@@ -10,6 +10,9 @@ gem 'activesupport'
 group :development, :test do
   gem "rake", "~> 13.0"
   gem "rubocop", "~> 1.21"
+  gem 'pry'
+  gem 'pry-doc'
+  gem 'webrick'
 end
 
 group :test do
