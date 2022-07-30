@@ -53,10 +53,11 @@ module TestableAquaduct
 
       const_set :Channels, mod::Channels
 
-      package_class = Class.new(const_get(:Package)) do
+      package_class_name = const_get(:EntityName).to_s.camelize
+      package_class = Class.new(const_get(package_class_name)) do
         include TestableChannelable
       end
-      const_set :Package, package_class
+      const_set package_class_name, package_class
     end
   end
 end
