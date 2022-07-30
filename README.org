@@ -144,14 +144,24 @@ Channels may be split into disparate sequences with their own cancel channels:
 #+END_SRC
 
 ***  Persistence
-In general, Aquaduct doesn't persist anything: it's the client's
+By default, Aquaduct doesn't persist anything: it's the client's
 responsibility to do so. However, Aquaduct supports delegating
 persistence for channeled packages, i.e. persisting when a package is
 channeled so as to not notify clients about it more than once.
 
-By default, this is enabled and calls methods on the Channeler
-delegate, for more info see ~Aquaduct::Persistence::Delegated~ (TODO:
-add link).
+You may specify persistence like so:
+
+#+BEGIN_SRC ruby
+  module MyAquaduct
+    include(Aquaduct.with_channels do
+              persist :in_memory
+            end)
+  end
+#+END_SRC
+
+The currently available persistences are ~:in_memory~ which works as
+you'd imagine, and ~:delegated~ which send persistence calls to the
+Channeler delegate. See ~Aquaduct::Persistence::Delegated~ for usage.
 
 You may, however, add your own duck-typed classes into
 ~Aquaduct::Persistence~ and use them like so:

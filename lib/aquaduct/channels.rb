@@ -27,11 +27,8 @@ module Aquaduct
       @cancel_channels = []
     end
 
-    def persist persistence = nil
-      persistence ||= Aquaduct::Persistence::Delegated
-      if persistence.is_a? Symbol
-        persistence = Aquaduct::Persistence.const_get persistence.to_s.camelize
-      end
+    def persist persistence
+      persistence = Aquaduct::Persistence.const_get persistence.to_s.camelize
       @persistence = persistence
     end
 
