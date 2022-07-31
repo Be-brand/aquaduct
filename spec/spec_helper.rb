@@ -15,7 +15,7 @@ RSpec.configure do |config|
     c.syntax = :expect
   end
 
-  config.after(:each) { Aquaduct::Persistence::InMemory.wipe }
+  config.after { Aquaduct::Persistence::InMemory.wipe }
 end
 
 module TestableChannelable
@@ -59,4 +59,18 @@ module TestableAquaduct
       const_set package_class_name, package_class
     end
   end
+end
+
+def make_aquaduct_with_channels *a, **kw, &b
+  @module = Module.new do
+    include(TestableAquaduct.with_channels *a, **kw, &b)
+  end
+  @entity_name = @module.const_get :EntityName
+  entity = @entity_name.to_s.camelize.to_sym
+  @package_class = @module.const_get entity
+  @package_channeler_class = @module.const_get :"#{entity}Channeler"
+end
+
+def channel *a, **kw, &b
+  @channeled = @package_channeler_class.channel *a, **kw, &b
 end
