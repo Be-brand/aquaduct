@@ -1,3 +1,5 @@
+require 'active_support/core_ext/string/inflections'
+
 module Aquaduct
   def self.with_channels for_entity = :package, &channel_drawer
     channels = Channels.draw &channel_drawer

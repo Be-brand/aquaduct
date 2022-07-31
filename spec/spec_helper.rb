@@ -3,7 +3,6 @@
 require 'aquaduct'
 require 'rspec/collection_matchers'
 require 'active_support/concern'
-require 'active_support/core_ext/string/inflections'
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
