@@ -5,20 +5,14 @@ module Aquaduct
     extend ActiveSupport::Concern
 
     included do
-      attr_reader :channel, :id
-
       @@channels = self.const_get :Channels
       class << self
         @@channels.each_value do |channel|
           define_method channel.name do |id|
-            new channel, id
+            new channel:, id:
           end
         end
       end
-    end
-
-    def initialize channel, id
-      @channel, @id = channel, id
     end
 
     def advance!

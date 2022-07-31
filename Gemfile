@@ -6,6 +6,7 @@ source "https://rubygems.org"
 gemspec
 
 gem 'activesupport'
+gem 'activemodel'
 
 group :development, :test do
   gem "rake", "~> 13.0"
