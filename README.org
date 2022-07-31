@@ -23,9 +23,9 @@ Aquaduct may be define like so:
   end
 
   packages = [
-    MyAquaduct::Package.started 'id 1',
-    MyAquaduct::Package.started 'id 2',
-    MyAquaduct::Package.ended 'id 3',
+    MyAquaduct::Package.started('id 1'),
+    MyAquaduct::Package.started('id 2'),
+    MyAquaduct::Package.ended('id 3'),
   ]
 
   channeled = MyAquaduct::PackageChanneler.channel MyAquaduct::Delegate *packages
@@ -65,9 +65,9 @@ Packages are advanced when the delegate says they should:
   end
 
   packages = [
-    MyAquaduct::Package.started 1,
-    MyAquaduct::Package.started 2,
-    MyAquaduct::Package.started 3,
+    MyAquaduct::Package.started(1),
+    MyAquaduct::Package.started(2),
+    MyAquaduct::Package.started(3),
   ]
 
   channeled = MyAquaduct::PackageChanneler.channel MyAquaduct::Delegate *packages
@@ -107,13 +107,13 @@ A custom cancel channel may be provided:
   end
 
   packages = [
-    MyAquaduct::Package.started 'id 1',
-    MyAquaduct::Package.ended 'id 2',
+    MyAquaduct::Package.started('id 1'),
+    MyAquaduct::Package.ended('id 2'),
   ]
-                                                            ]
-  channeled = MyAquaduct::PackageChanneler.channel MyAquaduct::Delegate, *packages
+  ]
+   channeled = MyAquaduct::PackageChanneler.channel MyAquaduct::Delegate, *packages
 
-  expect(MyAquaduct::Delegate).to receive(:custom_cancelled?).twice
+   expect(MyAquaduct::Delegate).to receive(:custom_cancelled?).twice
 #+END_SRC
 
 *** Multiple Cancel Channels
@@ -133,9 +133,9 @@ Channels may be split into disparate sequences with their own cancel channels:
   end
 
   packages = [
-    MyAquaduct::Package.first 'id 1',
-    MyAquaduct::Package.second 'id 2',
-    MyAquaduct::Package.second 'id 3',
+    MyAquaduct::Package.first('id 1'),
+    MyAquaduct::Package.second('id 2'),
+    MyAquaduct::Package.second('id 3'),
   ]
   channeled = MyAquaduct::PackageChanneler.channel MyAquaduct::Delegate, *packages
 
