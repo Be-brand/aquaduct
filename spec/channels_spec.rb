@@ -82,10 +82,5 @@ module Aquaduct
       expect { Channels.draw { and_then [] } }
         .to raise_error Channels::DrawCannotStartWithAndThenError
     end
-
-    # Channels.draw do
-    #   advance_through %i[ordered designed produced], cancel_into: :cancelled
-    #   and_then %i[shipped delivered], cancel_into: :requested_return
-    # end
   end
 end
